@@ -1,0 +1,104 @@
+Certificate Creation:
+Any entity that wants a CA signed certificate (generally called certificate) should first create a Key pair( lets say RSA public private key pair).
+The entity then creates what is called a certificate signing request with below details of the entity.
+
+What is contained in a CSR?
+Name				Explanation																Examples
+---------------------------------------------------------------
+Common Name		-	The fully qualified domain name (FQDN) of your server.				*.google.com
+					This must match exactly what you type in your web browser			mail.google.com
+					or you will receive a name mismatch error.
+
+
+Organization	- 	The legal name of your organization. This should not be
+					abbreviated and should include suffixes such as Inc, Corp, or LLC.	Google Inc.
+Organizational	- 	The division of your organization handling the certificate.			Information Technology
+Unit                                                                                    IT Department
+
+City/Locality	-	The city where your organization is located.						Mountain View
+State/County/	-	The state/region where your organization is located.				California
+Region 	            This shouldn't be abbreviated.
+Country			- 	The two-letter ISO code for the country where your organization		US
+					is location.
+
+
+Email address	-	An email address used to contact your organization.					webmaster@google.com
+Public Key		-	The public key that will go into the certificate.					The public key is created automatically
+
+What does a CSR look like?
+Most CSRs are created in the Base-64 encoded PEM format. This format includes the "-----BEGIN CERTIFICATE REQUEST-----" and "-----END CERTIFICATE REQUEST-----" lines at the begining and end of the CSR. A PEM format CSR can be opened in a text editor and looks like the following example:
+-----BEGIN CERTIFICATE REQUEST-----
+MIIByjCCATMCAQAwgYkxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlh
+MRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRMwEQYDVQQKEwpHb29nbGUgSW5jMR8w
+HQYDVQQLExZJbmZvcm1hdGlvbiBUZWNobm9sb2d5MRcwFQYDVQQDEw53d3cuZ29v
+Z2xlLmNvbTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEApZtYJCHJ4VpVXHfV
+IlstQTlO4qC03hjX+ZkPyvdYd1Q4+qbAeTwXmCUKYHThVRd5aXSqlPzyIBwieMZr
+WFlRQddZ1IzXAlVRDWwAo60KecqeAXnnUK+5fXoTI/UgWshre8tJ+x/TMHaQKR/J
+cIWPhqaQhsJuzZbvAdGA80BLxdMCAwEAAaAAMA0GCSqGSIb3DQEBBQUAA4GBAIhl
+4PvFq+e7ipARgI5ZM+GZx6mpCz44DTo0JkwfRDf+BtrsaC0q68eTf2XhYOsq4fkH
+Q0uA0aVog3f5iJxCa3Hp5gxbJQ6zV6kJ0TEsuaaOhEko9sdpCoPOnRBm2i/XRD2D
+6iNh8f8z0ShGsFqjDgFHyF3o+lUyj+UC6H1QW7bn
+-----END CERTIFICATE REQUEST-----
+
+using openssl you can create a CSR that can also spit out a server private key.
+openssl req -new -newkey rsa:2048 -nodes -out servername.csr -keyout servername.key
+
+Or give the above CSR to a CA and the CA (after due diligense) will create a certificate and sign it with CA private KEY.
+
+Structure of a Certificate:
+
+
+
+Server Certificate:
+The certificate type must be appropriate for the selected cipher
+suite's key exchange algorithm, and is generally an X.509v3
+certificate. It must contain a key which matches the key exchange
+method, as follows. Unless otherwise specified, the signing  algorithm for the certificate must be the same as the algorithm
+for the certificate key. Unless otherwise specified, the public
+key may be of any length.
+
+Key Exchange Algorithm  Certificate Key Type
+
+RSA                     RSA public key; the certificate must allow the key to be used for encryption.
+
+DHE_DSS                 DSS public key.
+
+DHE_RSA                 RSA public key which can be used for signing.
+
+DH_DSS                  Diffie-Hellman key. The algorithm used to sign the certificate should be DSS.
+
+DH_RSA                  Diffie-Hellman key. The algorithm used to sign the certificate should be RSA.
+
+certificate_list
+This is a sequence (chain) of X.509v3 certificates. The sender's
+certificate must come first in the list. Each following
+certificate must directly certify the one preceding it. Because
+certificate validation requires that root keys be distributed
+independently, the self-signed certificate which specifies the
+root certificate authority may optionally be omitted from the
+chain, under the assumption that the remote end must already
+possess it in order to validate it in any case.
+
+==============================================================================
+
+Certificates and Authentication:
+
+Digital certificates are vessels for asymmetric keys. They are intended to solve key distribution. Namely, the client wants to use the server's public key. The attacker will try to make the client use the attacker's public key. So the client must have a way to make sure that it is using the right key.
+
+SSL is supposed to use X.509. This is a standard for certificates. Each certificate is signed by a Certification Authority. The idea is that the client inherently knows the public keys of a handful of CA (these are the "trust anchors" or "root certificates"). With these keys, the client can verify the signature computed by a CA over a certificate which has been issued to the server. This process can be extended recursively: a CA can issue a certificate for another CA (i.e. sign the certificate structure which contains the other CA name and key). A chain of certificates beginning with a root CA and ending with the server's certificate, with intermediate CA certificates in between, each certificate being signed relatively to the public key which is encoded in the previous certificate, is called, unimaginatively, a certificate chain.
+
+So the client is supposed to do the following:
+
+	- Get a certificate chain ending with the server's certificate. The Certificate message from the server is supposed to contain, precisely, such a chain.
+	- Validate the chain, i.e. verifying all the signatures and names and the various X.509 bits. Also, the client should check revocation status of all the certificates in the chain, which is complex and heavy (Web browsers now do it, more or less, but it is a recent development).
+	- Verify that the intended server name is indeed written in the server's certificate. Because the client does not only want to use a validated public key, it also wants to use the public key of a specific server. See RFC 2818 for details on how this is done in a HTTPS context.
+================================================================================================================================================
+
+Digital signatures:
+In an authentication system that uses public-key encryption, digital signatures are used to sign certificates.
+
+This signature establishes the following information:
+    - The integrity of the message: Is the message intact? That is, has the message been modified between the time it was digitally signed and now?
+    - The identity of the signer of the message: Is the message authentic? That is, was the message signed by the user who claims to have signed it?
+
+

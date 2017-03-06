@@ -1,0 +1,49 @@
+http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
+
+signature_algorithms:
+
+SessionTicket TLS:
+
+heartbeat
+
+server_name/ Server Name Indication TLS extension:
+            TLS does not provide a mechanism for a client to tell a server the
+            name of the server it is contacting.  It may be desirable for clients
+            to provide this information to facilitate secure connections to
+            servers that host multiple 'virtual' servers at a single underlying
+            network address.
+
+            In order to provide the server name, clients MAY include an extension
+            of type "server_name" in the (extended) client hello.  The
+            "extension_data" field of this extension SHALL contain
+            "ServerNameList" where:
+
+            struct {
+            	NameType name_type;
+            	select (name_type) {
+            		case host_name: HostName;
+            		} name;
+            } ServerName;
+
+            enum {
+            	host_name(0), (255)
+            } NameType;
+
+            opaque HostName<1..2^16-1>;
+
+            struct {
+            	ServerName server_name_list<1..2^16-1>
+            } ServerNameList;
+
+ec_point_formats
+
+========================================================
+
+SSL 3.0
+
+		SSLv3 is identical to TLS as described, with one exception - in theory SSLv3 ClientHello packet doesn't have an extensions field.
+		In theory SSLv3 doesn't do SNI. In practice this is more complicated. TLS 1.0 also doesn't specify extensions field,
+		but most clients do send them anyway.
+
+
+

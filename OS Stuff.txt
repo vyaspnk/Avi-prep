@@ -1,0 +1,48 @@
+SMP: Symmetric Multi Processing
+SMMP: Shared Memory Multi Processor
+
+Memory Consistency: How instructions for a process are laid out and executed on processor.
+Cache Coherence: How the memory model of the architecture are implemented in the presense of private caches.
+NCC-SMMP: Non Cache Coherent SMMP. System software should ensure caches are coherent.
+CC-SMMP: Cache Coherent Multi Processor. Hardware cache ensures caches are coherent in SMMP.
+Hardware Cache Coherence (Snopy Caches): Caches snopping on the BUS looking for any cache updates. when one process writes to a cache it sends an invalidate write (INV(a), a being the resource) broadcast message on the BUS.
+Cache Coherence Problem: difference in values of a resources between caches of different caches of the processesors for processes running on them.
+Sequential Consistency: Instructions on a processor are executed and committed in sequence. Instructions beteeen processors can be arbitrary.
+
+Synchronization Primitives for Shared memory programming. (Latency, Waiting Time and Contention)
+1. Lock Algorithms
+	- Mutual Exclusion: One process at a time.
+	- Shared Lock: multiple threads allowed to read only and not write.
+2. Barrier Algorithms: Threads of a process reach a point and wait for remaining threads to reach the same point of execution before proceeding.
+
+
+
+Mutual Exclusion Implementation
+
+--------------------------------------------
+Lock(I):				|	UnLock(I)
+goback:					|		I = 0;
+	if(I==0)			|
+		I = 1;			|
+	else 				|
+		while(I==1);	|
+		//wait			|
+	goback;				|
+
+Read/Write or Load/Store instructions are inherently atomic, but group of R/W instructions are not atomic. We need a new atomic instruction semantic, something like Read-Modify-Write (RMW).
+Atomic RMW instructions:
+Test-and-Set(T&S(I)):
+			read Memory (I);
+			Set Memory(I=1);
+Fetch-and-Inc(I):
+			read Memory (I);
+			Inc value at Memory;
+Generally speaking they are Fetch - and Phi instructions (fetch and function).
+
+
+Caching Spin Lock: Caching the lock and spining on it. Exploit Hardware cache and cache coherense to improve synchronization using spin locks.
+Lock(I):
+goback:	while(I==LOCKED); 				//keep spinning on the cached lock.
+		if(T&S(I)==LOCKED) goback;
+
+Spinlocks with delay.
