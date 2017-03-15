@@ -102,3 +102,11 @@ This signature establishes the following information:
     - The identity of the signer of the message: Is the message authentic? That is, was the message signed by the user who claims to have signed it?
 
 
+Certificate Chaining:
+
+When you receive the certificate for another entity, you might need to use a certificate chain to obtain the root CA certificate.
+The certificate chain, also known as the certification path, is a list of certificates used to authenticate an entity. The chain, or path, begins with the certificate of that entity, and each certificate in the chain is signed by the entity identified by the next certificate in the chain. The chain terminates with a root CA certificate. The root CA certificate is always signed by the certificate authority (CA) itself. The signatures of all certificates in the chain must be verified until the root CA certificate is reached.
+Figure 1 illustrates a certification path from the certificate owner to the root CA, where the chain of trust begins.
+Figure 1. Chain of trust
+This diagram shows the signature on a user certificate verified with a CA certificate that is itself verified with the root CA certificate. The certificates are on a certification path.
+

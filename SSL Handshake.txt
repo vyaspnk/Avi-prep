@@ -225,3 +225,11 @@ verify_data
         defined in Section 5, the Hash MUST be the Hash used as the basis
         for the PRF.  Any cipher suite which defines a different PRF MUST
         also define the Hash to use in the Finished computation.
+
+===========================================================================================
+Generation of Premaster Secret and Master Secret.
+The client generates the 48-byte premaster secret by concatenating the protocol version (2 bytes) and some bytes that the client generates randomly (46 bytes). The client is supposed to get these 46 bytes from a cryptographically secure PRNG; in practice, this means using the PRNG offered by the operating system (/dev/urandom, CryptGenRandom()...).
+
+The client then encrypts the 48-byte premaster secret with the server's RSA public key (that the server sent previously to the client, in the Certificate message). The encrypted result is what the client sends to the server as the ClientKeyExchange message. By virtue of RSA being, well, a sound asymmetric encryption algorithm, what the server decrypts is equal to what the client encrypted.
+
+The server decrypts the contents of the ClientKeyExchange message using its private RSA key. At that point, both client and server know the premaster secret. They then proceed to use it to compute the master secret (using the client_random and server_random, exchanged previously in the ClientHello and ServerHello messages, and mixing the whole with the PRF). From the master secret, they again will use some PRF mixing to obtain the actual encryption keys for subsequent data.

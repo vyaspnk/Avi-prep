@@ -1,0 +1,24 @@
+Perfect Forward Secrecy (PFS) is a function of the key-exchange protocol. The key-exchange protocol results in the generation of a shared secret that may be used as the input to the cipher used to encrypt an SSL session. Key-exchange protocols that provide PFS are called ephemeral because they use a temporary public/private key pair to generate the shared secret. Non-ephemeral protocols use a long-lived secret, usually the same one for all connections, and thus the security of all sessions past and present are tied to the security of the private key.
+
+I've always looked at PFS as how one should expect SSL to work. Without PFS, an adversary in position of the private key for a site can decrypt all communication forever and always between that host and all clients. You might say that makes sense, but note that the actual encryption employed over SSL is not encrypted via public key encryption but instead via a symmetric cipher such as AES. Public key encryption is used to generate and share the key to that cipher. Without PFS, that cipher key is tied to the site's private key. This means an adversary can sniff and store all encrypted traffic from a particular host in hopes of compromising the security in the future. If it ever does, the whole lot can be decrypted at once. With PFS, that isn't possible, as a unique secret is used to generate the shared secret for each session.
+
+Let's look at how key exchange works in the common non-ephemeral case. Instead of giving a practical example using, say, Diffie-Hellman, I'll give a generalized example where the math is simple:
+Alice (client) wants to talk to Bob (server).
+Bob has a private key X and a public key Y. X is secret, Y is public.
+Alice generates a large, random integer M.
+Alice encrypts M using Y and sends Y(M) to Bob.
+Bob decrypts Y(M) using X, yielding M.
+Both Alice and Bob now have M and use it as the key to whatever cipher they agreed to use for the SSL session—for example, AES.
+
+Pretty simple, right? The problem, of course, is that if anyone ever finds out X, every single communication is compromised: X lets an attacker decrypt Y(M), yielding M. Let's look at the PFS version of this scenario:
+Alice (client) wants to talk to Bob (server).
+Bob generates a new set of public and private keys, Y' and X'.
+Bob sends Y' to Alice.
+Alice generates a large, random integer M.
+Alice encrypts M using Y' and sends Y'(M) to Bob.
+Bob decrypts Y'(M) using X', yielding M.
+Both Alice and Bob now have M and use it as the key to whatever cipher they agreed to use for the SSL session—for example, AES.
+
+(X and Y are still used to validate identity; I'm leaving that out.)
+
+In this second example, X isn't used to create the shared secret, so even if X becomes compromised, M is undiscoverable. But you've just pushed the problem to X', you might say. What if X' becomes known? But that's the genius, I say. Assuming X' is never reused and never stored, the only way to obtain X' is if the adversary has access to the host's memory at the time of the communication. If your adversary has such physical access, then encryption of any sort isn't going to do you any good. Moreover, even if X' were somehow compromised, it would only reveal this particular communication.

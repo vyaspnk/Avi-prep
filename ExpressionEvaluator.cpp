@@ -12,7 +12,7 @@
 #include <sstream>
 using namespace std;
 #define isDigit(x) (x-'0' >=0 && x-'0' <= 9)
-bool hasPrecedence(char op1, char op2) // true of op2 has higher precedence.
+bool hasPrecedence(char op1, char op2) // true of op2 has higher precedence. op1 is expression op. op2 is ops stack top.
 {
     if (op2 == '(' || op2 == ')')
         return false;
